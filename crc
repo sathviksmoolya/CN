@@ -1,0 +1,95 @@
+import java.io.*;
+import java.util.Scanner;
+class CRC {
+    String data; 
+
+    public static void main(String args[]) throws IOException {
+        String gp;
+        String data;
+        BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+        System.out.println("Enter Generator polynomial");
+        gp = br.readLine();
+        System.out.println("Enter Data");
+        data = br.readLine();
+
+        CRC crcObj = new CRC();
+        crcObj.encode(data, gp);
+    }
+
+    public void encode(String data, String gp) {
+        int len = gp.length() - 1;
+        String newdata = data;
+        
+        
+        for (int i = 0; i < len; i++) {
+            newdata = newdata + "0";
+        }
+
+        System.out.println("Data after appending zeros=" + newdata);
+
+        CRC obj = new CRC();
+        String checksum = obj.div(newdata, gp);
+
+       
+        String encodedData = data + checksum;
+        System.out.println("the appended Data=" + encodedData);
+
+       
+        System.out.println("Eter the position to change the bit");
+        Scanner sc = new Scanner(System.in);
+        int errorPosition = sc.nextInt(); // change this to simulate an error at a specific position
+        encodedData = changebit(encodedData, errorPosition);
+
+        System.out.println("Received Data with Error=" + encodedData);
+
+       
+        String receivedChecksum = obj.div(encodedData, gp);
+        if (receivedChecksum.equals("0")) {
+            System.out.println("No error detected. Data is correct.");
+        } else {
+            System.out.println("Error has been detected in the received data.");
+        }
+    }
+
+    public String div(String data1, String gp) {
+        String rem = "";
+
+        for (int i = 0; i < gp.length(); i++) {
+            if (data1.charAt(i) == gp.charAt(i)) {
+                rem = rem + "0";
+            } else {
+                rem = rem + "1";
+            }
+        }
+
+        int gpl = gp.length();
+        while (gpl < data1.length()) {
+            if (rem.charAt(0) == '0') {
+                rem = rem.substring(1) + data1.charAt(gpl);
+                gpl++;
+            } else {
+                String temp = "";
+                for (int i = 0; i < gp.length(); i++) {
+                    if (rem.charAt(i) == gp.charAt(i)) {
+                        temp = temp + "0";
+                    } else {
+                        temp = temp + "1";
+                    }
+                }
+                rem = temp.substring(1) + data1.charAt(gpl);
+                gpl++;
+            }
+        }
+
+        rem = rem.substring(1);
+
+        System.out.println("Checksum=" + rem);
+        return rem;
+    }
+
+    private String changebit(String input, int position) {
+        char[] bits = input.toCharArray(); ;
+        bits[position - 1] = (bits[position - 1] == '0') ? '1' : '0';
+        return new String(bits);
+    }
+}
